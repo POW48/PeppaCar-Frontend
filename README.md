@@ -2,7 +2,7 @@
 
 > Peppa Car 小車（jū）佩奇
 
-![Icon](./Icon.png)
+<img src="./Icon.png" alt="Peppa Car" style="width: 200px;"/>
 
 ## Build Setup
 
