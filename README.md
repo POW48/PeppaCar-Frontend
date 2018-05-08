@@ -2,7 +2,7 @@
 
 > Peppa Car 小車（jū）佩奇
 
-![Icon](D:\git\PeppaCar\PeppaCar-Frontend\Icon.png)
+![Icon](./Icon.png)
 
 ## Build Setup
 
