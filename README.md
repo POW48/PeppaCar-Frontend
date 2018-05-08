@@ -2,6 +2,8 @@
 
 > Peppa Car 小車佩奇
 
+![Icon](D:\git\PeppaCar\PeppaCar-Frontend\Icon.png)
+
 ## Build Setup
 
 ``` bash
