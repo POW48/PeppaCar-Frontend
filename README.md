@@ -1,8 +1,7 @@
-# peppa-car
+<p align="center"><img src="./Icon.png" alt="Peppa Car" width="200" /></p>
 
-> Peppa Car 小車（jū）佩奇
-
-<img src="./Icon.png" alt="Peppa Car" width="200" />
+<h1 align="center">Peppa Car</h1>
+<p align="center">The Frontend of Peppa Car 小車（jū）佩奇</p>
 
 ## Build Setup
 
