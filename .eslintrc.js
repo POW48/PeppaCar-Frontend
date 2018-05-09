@@ -4,6 +4,7 @@ module.exports = {
   root: true,
   parser: 'babel-eslint',
   parserOptions: {
+    "ecmaVersion": 9,
     sourceType: 'module'
   },
   env: {
@@ -19,6 +20,15 @@ module.exports = {
   'rules': {
     // allow paren-less arrow functions
     'arrow-parens': 0,
+    'semi': 0,
+    'space-before-function-paren': ["error", "never"],
+    "indent": [
+      "error",
+      2,
+      {
+        "SwitchCase": 1
+      }
+    ],
     // allow async-await
     'generator-star-spacing': 0,
     // allow debugger during development
