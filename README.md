@@ -19,4 +19,16 @@ npm run build
 npm run build --report
 ```
 
+## WebSocket Packet Format
+
+``` json
+{
+  "mode": "user|track|ball",
+  "direction": 0,
+  "speed": 8
+}
+```
+
+P.S. `mode` is one of `user`, `track` or `ball`. Fields `direction` and `speed` are only displayed when `mode` is equal to `user`. `direction` is set to 0 to 359. And `speed` is in range of 0 to 10.
+
 For detailed explanation on how things work, checkout the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).

@@ -35,6 +35,7 @@
 <script>
 import Monitor from './components/Monitor'
 import Nipple from './components/Nipple'
+import { mapActions } from 'vuex'
 
 export default {
   name: 'app',
@@ -43,9 +44,11 @@ export default {
       videoReady: false,
       videoRes: 'about:blank',
       mobile: false,
-      gamepad: false
+      gamepad: false,
+      key: -1
     }
   },
+  methods: mapActions(['setWS', 'pushMsg']),
   components: {
     Monitor,
     Nipple
@@ -54,11 +57,41 @@ export default {
     if (document.body.getBoundingClientRect().width < 700) {
       this.$set(this, 'mobile', true)
     }
-    window.addEventListener('gamepaddisconnected', (e) => {
+    let ws = new WebSocket(`ws://${window.location.host}`)
+    this.setWS(ws)
+    window.addEventListener('gamepaddisconnected', e => {
       this.$set(this, 'gamepad', false)
     })
-    window.addEventListener('gamepadconnected', (e) => {
+    window.addEventListener('gamepadconnected', e => {
       this.$set(this, 'gamepad', true)
+    })
+    window.addEventListener('keydown', e => {
+      // keyCode: 37 - 40 is Left, Up, Right, Down
+      if (e.keyCode >= 37 && e.keyCode <= 40 && e.keyCode !== this.key) {
+        this.$set(this, 'key', e.keyCode)
+        let dir = (e.keyCode - 38) * 90
+        if (dir < 0) dir += 360
+        this.pushMsg({
+          type: 'custom',
+          direction: dir,
+          speed: 10
+        })
+      }
+    })
+    window.addEventListener('keyup', e => {
+      if (e.keyCode === this.key) {
+        this.$set(this, 'key', -1)
+        this.pushMsg({
+          type: 'custom',
+          direction: 0,
+          speed: 0
+        })
+      }
+    })
+    this.pushMsg({
+      type: 'custom',
+      direction: 0,
+      speed: 0
     })
   }
 }
