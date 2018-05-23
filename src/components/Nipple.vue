@@ -6,6 +6,7 @@
 
 <script>
 import Nipple from 'nipplejs'
+import { mapActions } from 'vuex'
 
 export default {
   name: 'nipple',
@@ -16,6 +17,7 @@ export default {
       gamepad: null
     }
   },
+  methods: mapActions(['pushMsg']),
   mounted() {
     window.addEventListener('gamepaddisconnected', (e) => {
       if (!this.np) {
@@ -27,6 +29,25 @@ export default {
         })
         np.on('added', () => {
           this.$set(this, 'notMoved', false)
+        })
+        np.on('move', (e, data) => {
+          let dir = 90 - Math.round(data.angle.degree)
+          if (dir < 0) dir += 360
+          // Comment next statement to get a better control.
+          dir = Math.floor(((dir + 45) % 360) / 90) * 90
+          let spd = Math.round(data.distance / 5)
+          this.pushMsg({
+            mode: 'custom',
+            direction: dir,
+            speed: spd
+          })
+        })
+        np.on('end', () => {
+          this.pushMsg({
+            mode: 'custom',
+            direction: 0,
+            speed: 0
+          })
         })
         this.$set(this, 'np', np)
       }

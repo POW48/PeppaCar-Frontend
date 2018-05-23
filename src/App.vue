@@ -37,6 +37,10 @@ import Monitor from './components/Monitor'
 import Nipple from './components/Nipple'
 import { mapActions } from 'vuex'
 
+let superSPD = 10
+let lastTS = 0
+let lockAX = -1
+
 export default {
   name: 'app',
   data() {
@@ -48,7 +52,66 @@ export default {
       key: -1
     }
   },
-  methods: mapActions(['setWS', 'pushMsg']),
+  methods: {
+    refreshGamepad() {
+      let gamepad = navigator.getGamepads()[0]
+      if (gamepad.timestamp === lastTS) return
+      lastTS = gamepad.timestamp
+      if (lockAX < 0) {
+        for (let i in gamepad.axes) {
+          if (Math.floor(Math.abs(gamepad.axes[i] * 10))) {
+            lockAX = Math.floor(i / 2)
+            break
+          }
+        }
+      }
+      if (lockAX >= 0) {
+        let x = gamepad.axes[lockAX * 2]
+        let y = gamepad.axes[lockAX * 2 + 1]
+        if (Math.floor(Math.abs(x * 10)) === 0 && Math.floor(Math.abs(y * 10)) === 0) {
+          lockAX = -1
+          this.pushMsg({
+            mode: 'custom',
+            direction: 0,
+            speed: 0
+          })
+        } else {
+          // Temporary method for gamepad control.
+          if (Math.abs(x) >= Math.abs(y)) {
+            if (x > 0) {
+              this.pushMsg({
+                mode: 'custom',
+                direction: 90,
+                speed: Math.floor(x * 10)
+              })
+            } else {
+              this.pushMsg({
+                mode: 'custom',
+                direction: 270,
+                speed: Math.floor(-x * 10)
+              })
+            }
+          } else {
+            if (y > 0) {
+              this.pushMsg({
+                mode: 'custom',
+                direction: 180,
+                speed: Math.floor(y * 10)
+              })
+            } else {
+              this.pushMsg({
+                mode: 'custom',
+                direction: 0,
+                speed: Math.floor(-y * 10)
+              })
+            }
+          }
+          // Temporary method end.
+        }
+      }
+    },
+    ...mapActions(['setWS', 'pushMsg'])
+  },
   components: {
     Monitor,
     Nipple
@@ -57,13 +120,18 @@ export default {
     if (document.body.getBoundingClientRect().width < 700) {
       this.$set(this, 'mobile', true)
     }
-    let ws = new WebSocket(`ws://${window.location.host}`)
+    let ws = new WebSocket(`ws://${window.location.hostname}:8000/chat`)
     this.setWS(ws)
     window.addEventListener('gamepaddisconnected', e => {
+      if (this.gamepad) {
+        clearInterval(this.gamepad)
+      }
+      lastTS = 0
       this.$set(this, 'gamepad', false)
     })
     window.addEventListener('gamepadconnected', e => {
-      this.$set(this, 'gamepad', true)
+      let int = setInterval(this.refreshGamepad, 50)
+      this.$set(this, 'gamepad', int)
     })
     window.addEventListener('keydown', e => {
       // keyCode: 37 - 40 is Left, Up, Right, Down
@@ -72,24 +140,38 @@ export default {
         let dir = (e.keyCode - 38) * 90
         if (dir < 0) dir += 360
         this.pushMsg({
-          type: 'custom',
+          mode: 'custom',
           direction: dir,
-          speed: 10
+          speed: superSPD
         })
+      }
+      // keyCode: 48 - 57 is numeric 0 - 9
+      if (e.keyCode >= 48 && e.keyCode <= 57) {
+        superSPD = e.keyCode - 48
+        if (superSPD === 0) superSPD = 10
+        if (this.key > 0) {
+          let dir = (this.key - 38) * 90
+          if (dir < 0) dir += 360
+          this.pushMsg({
+            mode: 'custom',
+            direction: dir,
+            speed: superSPD
+          })
+        }
       }
     })
     window.addEventListener('keyup', e => {
       if (e.keyCode === this.key) {
         this.$set(this, 'key', -1)
         this.pushMsg({
-          type: 'custom',
+          mode: 'custom',
           direction: 0,
           speed: 0
         })
       }
     })
     this.pushMsg({
-      type: 'custom',
+      mode: 'custom',
       direction: 0,
       speed: 0
     })

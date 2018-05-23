@@ -12,11 +12,11 @@ const state = {
 }
 
 const mutations = {
-  WS_READY(state, ws) {
-    state.ws = ws
-  },
-  SET_WS(state) {
+  WS_READY(state) {
     state.wsReady = true
+  },
+  SET_WS(state, ws) {
+    state.ws = ws
   },
   NEW_MSG(state, msg) {
     state.waitMsg = msg
@@ -34,7 +34,7 @@ const actions = {
     ws.onopen = () => {
       commit('WS_READY')
       if (state.waitMsg) {
-        sendData(state.ws, state.waitMsg)
+        sendData(ws, state.waitMsg)
         commit('NEXT_MSG')
       }
     }
