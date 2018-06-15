@@ -8,20 +8,27 @@
       </Header>
       <Content style="height:calc(100vh - 133px);position:relative">
         <template v-if="mobile">
-          <video class="video mobile">
-            <source :src="videoRes">
-          </video>
+          <canvas class="video mobile" id="vdCtner">
+          </canvas>
           <p v-if="!videoReady" class="hMid vMid video mobile">无视频信号</p>
           <nipple class="nipple mobile"></nipple>
         </template>
         <template v-else>
           <div class="leftPanel">
             <monitor class="monitor"></monitor>
-            <nipple class="nipple" :class="gamepad? 'deactive' : ''"></nipple>
+            <div style="text-align:center;margin:5px 0">
+              <template v-if="mode === 'user'">
+                <Button type="primary" shape="circle" @click="mode='track'">寻迹模式</Button>
+                <Button type="primary" shape="circle" @click="mode='ball'">推球模式</Button>
+              </template>
+              <template v-else>
+                <Button type="primary" shape="circle" @click="mode='user'">手动模式</Button>
+              </template>
+            </div>
+            <nipple class="nipple" :class="gamepad || mode !== 'user'? 'deactive' : ''" :mode='mode'></nipple>
           </div>
-          <video class="video">
-            <source :src="videoRes">
-          </video>
+          <canvas class="video" id="vdCtner">
+          </canvas>
           <p v-if="!videoReady" class="hMid vMid video">无视频信号</p>
         </template>
       </Content>
@@ -35,6 +42,7 @@
 <script>
 import Monitor from './components/Monitor'
 import Nipple from './components/Nipple'
+import JSMpeg from 'jsmpeg'
 import { mapActions } from 'vuex'
 
 let superSPD = 10
@@ -45,8 +53,9 @@ export default {
   name: 'app',
   data() {
     return {
+      mode: 'user',
       videoReady: false,
-      videoRes: 'about:blank',
+      videoRes: null,
       mobile: false,
       gamepad: false,
       key: -1
@@ -71,7 +80,7 @@ export default {
         if (Math.floor(Math.abs(x * 10)) === 0 && Math.floor(Math.abs(y * 10)) === 0) {
           lockAX = -1
           this.pushMsg({
-            mode: 'custom',
+            mode: 'user',
             direction: 0,
             speed: 0
           })
@@ -80,13 +89,13 @@ export default {
           if (Math.abs(x) >= Math.abs(y)) {
             if (x > 0) {
               this.pushMsg({
-                mode: 'custom',
+                mode: 'user',
                 direction: 90,
                 speed: Math.floor(x * 10)
               })
             } else {
               this.pushMsg({
-                mode: 'custom',
+                mode: 'user',
                 direction: 270,
                 speed: Math.floor(-x * 10)
               })
@@ -94,13 +103,13 @@ export default {
           } else {
             if (y > 0) {
               this.pushMsg({
-                mode: 'custom',
+                mode: 'user',
                 direction: 180,
                 speed: Math.floor(y * 10)
               })
             } else {
               this.pushMsg({
-                mode: 'custom',
+                mode: 'user',
                 direction: 0,
                 speed: Math.floor(-y * 10)
               })
@@ -111,6 +120,15 @@ export default {
       }
     },
     ...mapActions(['setWS', 'pushMsg'])
+  },
+  watch: {
+    mode(v) {
+      this.pushMsg({
+        mode: v,
+        direction: 0,
+        speed: 0
+      })
+    }
   },
   components: {
     Monitor,
@@ -140,7 +158,7 @@ export default {
         let dir = (e.keyCode - 38) * 90
         if (dir < 0) dir += 360
         this.pushMsg({
-          mode: 'custom',
+          mode: 'user',
           direction: dir,
           speed: superSPD
         })
@@ -153,7 +171,7 @@ export default {
           let dir = (this.key - 38) * 90
           if (dir < 0) dir += 360
           this.pushMsg({
-            mode: 'custom',
+            mode: 'user',
             direction: dir,
             speed: superSPD
           })
@@ -164,17 +182,29 @@ export default {
       if (e.keyCode === this.key) {
         this.$set(this, 'key', -1)
         this.pushMsg({
-          mode: 'custom',
+          mode: 'user',
           direction: 0,
           speed: 0
         })
       }
     })
     this.pushMsg({
-      mode: 'custom',
+      mode: 'user',
       direction: 0,
       speed: 0
     })
+    let playerWS = new WebSocket(`ws://${window.location.hostname}:8081`)
+    let timefn = setTimeout(() => {
+      this.$set(this, 'videoReady', true)
+    }, 2000)
+    playerWS.onerror = () => {
+      this.$set(this, 'videoReady', false)
+      clearTimeout(timefn)
+    }
+    let player = new JSMpeg(playerWS, {
+      canvas: document.getElementById('vdCtner')
+    })
+    this.$set(this, 'videoRes', player)
   }
 }
 </script>
@@ -234,6 +264,9 @@ export default {
   right: 0;
   width: 100%;
   height: 90%;
+}
+
+canvas.video {
 }
 
 .nipple.mobile {

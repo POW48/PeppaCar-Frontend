@@ -21,6 +21,8 @@ npm run build --report
 
 ## WebSocket Packet Format
 
+### Gamepad Format
+
 ``` json
 {
   "mode": "user|track|ball",
@@ -30,5 +32,20 @@ npm run build --report
 ```
 
 P.S. `mode` is one of `user`, `track` or `ball`. Fields `direction` and `speed` are only displayed when `mode` is equal to `user`. `direction` is set to 0 to 359. And `speed` is in range of 0 to 10.
+
+### Sensor Status Format
+
+
+``` json
+{
+  "type": "sensor",
+  "data": {
+    "xxsensor": 3.1415,
+    "yysensor": 2.7182
+  }
+}
+```
+
+
 
 For detailed explanation on how things work, checkout the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).

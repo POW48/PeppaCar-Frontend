@@ -17,6 +17,24 @@ export default {
       gamepad: null
     }
   },
+  props: {
+    mode: {
+      type: String,
+      required: false
+    }
+  },
+  watch: {
+    mode(v) {
+      if (v === 'user') {
+        window.dispatchEvent(new Event('gamepaddisconnected'))
+      } else {
+        if (this.np) {
+          this.np.destroy()
+          this.$set(this, 'np', null)
+        }
+      }
+    }
+  },
   methods: mapActions(['pushMsg']),
   mounted() {
     window.addEventListener('gamepaddisconnected', (e) => {
@@ -37,14 +55,14 @@ export default {
           dir = Math.floor(((dir + 45) % 360) / 90) * 90
           let spd = Math.round(data.distance / 5)
           this.pushMsg({
-            mode: 'custom',
+            mode: 'user',
             direction: dir,
             speed: spd
           })
         })
         np.on('end', () => {
           this.pushMsg({
-            mode: 'custom',
+            mode: 'user',
             direction: 0,
             speed: 0
           })

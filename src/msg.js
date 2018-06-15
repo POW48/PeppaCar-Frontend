@@ -11,6 +11,10 @@ const state = {
   recMsg: ''
 }
 
+const getters = {
+  getRecMsg: s => s.recMsg
+}
+
 const mutations = {
   WS_READY(state) {
     state.wsReady = true
@@ -37,6 +41,7 @@ const actions = {
         sendData(ws, state.waitMsg)
         commit('NEXT_MSG')
       }
+      commit('REC_MSG', '{"type":"sensor","data":{"WebSocket":1}}')
     }
     ws.onmessage = e => {
       commit('REC_MSG', e.data)
@@ -66,5 +71,6 @@ function sendData(ws, msg) {
 export default new Vuex.Store({
   state,
   mutations,
-  actions
+  actions,
+  getters
 })
